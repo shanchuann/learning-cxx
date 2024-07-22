@@ -1,38 +1,60 @@
-﻿
 ﻿#include "../exercise.h"
-
+#include <iostream>
+#include <cstring>
     // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
+    // 定义 ASSERT 宏
+#define ASSERT(condition, message) \
+    do { \
+        if (!(condition)) { \
+            std::cerr << "Assertion `" #condition "` failed: " << message << std::endl; \
+            std::terminate(); \
+        } \
+    } while (false)
 
     template<class T>
     struct Tensor4D {
-    unsigned int shape[4];
-    T *data;
+        unsigned int shape[4];
+        T *data;
 
-    Tensor4D(unsigned int const shape_[4], T const *data_) {
-        unsigned int size = 1;
-        // TODO: 填入正确的 shape 并计算 size
-        data = new T[size];
-        std::memcpy(data, data_, size * sizeof(T));
-    }
-    ~Tensor4D() {
-        delete[] data;
-    }
+        Tensor4D(unsigned int const shape_[4], T const *data_) {
+            unsigned int size = 1;
+            for (int i = 0; i < 4; ++i) {
+                shape[i] = shape_[i];
+                size *= shape_[i];
+            }
+            data = new T[size];
+            std::memcpy(data, data_, size * sizeof(T));
+        }
 
-    // 为了保持简单，禁止复制和移动
-    Tensor4D(Tensor4D const &) = delete;
-    Tensor4D(Tensor4D &&) noexcept = delete;
+        ~Tensor4D() {
+            delete[] data;
+        }
 
-    // 这个加法需要支持“单向广播”。
-    // 具体来说，`others` 可以具有与 `this` 不同的形状，形状不同的维度长度必须为 1。
-    // `others` 长度为 1 但 `this` 长度不为 1 的维度将发生广播计算。
-    // 例如，`this` 形状为 `[1, 2, 3, 4]`，`others` 形状为 `[1, 2, 1, 4]`，
-    // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
-    Tensor4D &operator+=(Tensor4D const &others) {
-        // TODO: 实现单向广播的加法
-        return *this;
-    }
-};
+        // 为了保持简单，禁止复制和移动
+        Tensor4D(Tensor4D const &) = delete;
+        Tensor4D(Tensor4D &&) noexcept = delete;
 
+        Tensor4D &operator+=(Tensor4D const &others) {
+            for (unsigned int n = 0; n < shape[0]; ++n) {
+                for (unsigned int c = 0; c < shape[1]; ++c) {
+                    for (unsigned int h = 0; h < shape[2]; ++h) {
+                        for (unsigned int w = 0; w < shape[3]; ++w) {
+                            unsigned int this_idx = n * shape[1] * shape[2] * shape[3] +
+                                                    c * shape[2] * shape[3] +
+                                                    h * shape[3] + w;
+
+                            unsigned int others_idx = (n % others.shape[0]) * others.shape[1] * others.shape[2] * others.shape[3] +
+                                                      (c % others.shape[1]) * others.shape[2] * others.shape[3] +
+                                                      (h % others.shape[2]) * others.shape[3] + (w % others.shape[3]);
+
+                            data[this_idx] += others.data[others_idx];
+                        }
+                    }
+                }
+            }
+            return *this;
+        }
+    };
 // ---- 不要修改以下代码 ----
 int main(int argc, char **argv) {
     {
