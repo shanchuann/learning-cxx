@@ -1,5 +1,8 @@
 ﻿#include "../exercise.h"
-
+#include <array>
+#include <numeric>
+#include <algorithm>
+#include <functional>
 // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
 template<class T>
@@ -8,10 +11,10 @@ struct Tensor4D {
     T *data;
 
     Tensor4D(unsigned int const shape_[4], T const *data_) {
-        unsigned int size = 1;
-        // TODO: 填入正确的 shape 并计算 size
+        std::copy_n(shape_, 4, shape);
+        unsigned int size = std::accumulate(std::begin(shape), std::end(shape), 1, std::multiplies<unsigned int>{});
         data = new T[size];
-        std::memcpy(data, data_, size * sizeof(T));
+        std::copy(data_, data_ + size, data);
     }
     ~Tensor4D() {
         delete[] data;

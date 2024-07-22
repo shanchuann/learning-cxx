@@ -1,5 +1,5 @@
 ﻿#include "../exercise.h"
-
+#include <cassert>
 // READ: 模板非类型实参 <https://zh.cppreference.com/w/cpp/language/template_parameters#%E6%A8%A1%E6%9D%BF%E9%9D%9E%E7%B1%BB%E5%9E%8B%E5%AE%9E%E5%8F%82>
 
 template<unsigned int N, class T>
@@ -8,16 +8,18 @@ struct Tensor {
     T *data;
 
     Tensor(unsigned int const shape_[N]) {
+        std::copy(shape_, shape_ + N, shape);
         unsigned int size = 1;
-        // TODO: 填入正确的 shape 并计算 size
+        for (unsigned int i = 0; i < N; ++i) {
+            size *= shape[i];
+        }
         data = new T[size];
-        std::memset(data, 0, size * sizeof(T));
+        std::fill_n(data, size, T{});
     }
     ~Tensor() {
         delete[] data;
     }
 
-    // 为了保持简单，禁止复制和移动
     Tensor(Tensor const &) = delete;
     Tensor(Tensor &&) noexcept = delete;
 
@@ -31,13 +33,16 @@ struct Tensor {
 private:
     unsigned int data_index(unsigned int const indices[N]) const {
         unsigned int index = 0;
-        for (unsigned int i = 0; i < N; ++i) {
-            ASSERT(indices[i] < shape[i]);
-            // TODO: 计算 index
+        unsigned int stride = 1;
+        for (unsigned int i = N; i-- > 0; )
+        {
+            assert(indices[i] < shape[i]);
+            index += stride * indices[i];
+            stride *= shape[i];
         }
+        return index;
     }
 };
-
 // ---- 不要修改以下代码 ----
 int main(int argc, char **argv) {
     {
