@@ -1,20 +1,18 @@
+﻿
 ﻿#include "../exercise.h"
-#include <array>
-#include <numeric>
-#include <algorithm>
-#include <functional>
-// READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
-template<class T>
-struct Tensor4D {
+    // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
+
+    template<class T>
+    struct Tensor4D {
     unsigned int shape[4];
     T *data;
 
     Tensor4D(unsigned int const shape_[4], T const *data_) {
-        std::copy_n(shape_, 4, shape);
-        unsigned int size = std::accumulate(std::begin(shape), std::end(shape), 1, std::multiplies<unsigned int>{});
+        unsigned int size = 1;
+        // TODO: 填入正确的 shape 并计算 size
         data = new T[size];
-        std::copy(data_, data_ + size, data);
+        std::memcpy(data, data_, size * sizeof(T));
     }
     ~Tensor4D() {
         delete[] data;
@@ -52,7 +50,7 @@ int main(int argc, char **argv) {
         auto t0 = Tensor4D(shape, data);
         auto t1 = Tensor4D(shape, data);
         t0 += t1;
-        for (auto i = 0u; i < sizeof(data) / sizeof(int); ++i) {
+        for (auto i = 0u; i < sizeof(data) / sizeof(*data); ++i) {
             ASSERT(t0.data[i] == data[i] * 2, "Tensor doubled by plus its self.");
         }
     }
@@ -83,7 +81,7 @@ int main(int argc, char **argv) {
         auto t0 = Tensor4D(s0, d0);
         auto t1 = Tensor4D(s1, d1);
         t0 += t1;
-        for (auto i = 0u; i < sizeof(d0) / sizeof(int); ++i) {
+        for (auto i = 0u; i < sizeof(d0) / sizeof(*d0); ++i) {
             ASSERT(t0.data[i] == 7.f, "Every element of t0 should be 7 after adding t1 to it.");
         }
     }
@@ -105,7 +103,7 @@ int main(int argc, char **argv) {
         auto t0 = Tensor4D(s0, d0);
         auto t1 = Tensor4D(s1, d1);
         t0 += t1;
-        for (auto i = 0u; i < sizeof(d0) / sizeof(int); ++i) {
+        for (auto i = 0u; i < sizeof(d0) / sizeof(*d0); ++i) {
             ASSERT(t0.data[i] == d0[i] + 1, "Every element of t0 should be incremented by 1 after adding t1 to it.");
         }
     }
